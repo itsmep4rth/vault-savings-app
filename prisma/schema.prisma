@@ -1,7 +1,3 @@
-// Vault — Prisma schema
-// Owner: Jemor Ballentine (Phase 0 "lands it"; Stream B owns Goal + SavingsEntry)
-// Data model mirrors ARCHITECTURE.md §4.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +6,113 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
+model User {
+  id               String          @id @default(cuid())
+  name             String?
+  email            String          @unique
+  emailVerified    DateTime?
+  image            String?
+  plan             Plan            @default(free)
+  stripeCustomerId String?         @unique
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  accounts         Account[]
+  expenseProfile   ExpenseProfile?
+  goals            Goal[]
+  sessions         Session[]
+  subscription     Subscription?
+}
+
+model ExpenseProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  rent      Int      @default(0)
+  groceries Int      @default(0)
+  food      Int      @default(0)
+  transport Int      @default(0)
+  utilities Int      @default(0)
+  other     Int      @default(0)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id           String         @id @default(cuid())
+  userId       String
+  targetAmount Int
+  startDate    DateTime       @default(now())
+  deadline     DateTime
+  status       GoalStatus     @default(active)
+  savedAmount  Int            @default(0)
+  rewardRate   Float?
+  rewardAmount Int?
+  settledAt    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries      SavingsEntry[]
+
+  @@index([userId, status])
+  @@index([status, deadline])
+}
+
+model SavingsEntry {
+  id        String   @id @default(cuid())
+  goalId    String
+  amount    Int
+  note      String?
+  createdAt DateTime @default(now())
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, createdAt])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeSubscriptionId String             @unique
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
 
 enum Plan {
   free
@@ -31,140 +131,3 @@ enum SubscriptionStatus {
   past_due
   canceled
 }
-
-// ---------------------------------------------------------------------------
-// Core domain
-// ---------------------------------------------------------------------------
-
-model User {
-  id               String    @id @default(cuid())
-  name             String?
-  email            String    @unique
-  emailVerified    DateTime?
-  image            String?
-
-  plan             Plan      @default(free)
-  stripeCustomerId String?   @unique
-
-  expenseProfile   ExpenseProfile?
-  goals            Goal[]
-  subscription     Subscription?
-  accounts         Account[]
-  sessions         Session[]
-
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
-
-model ExpenseProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  rent      Int      @default(0)
-  groceries Int      @default(0)
-  food      Int      @default(0)
-  transport Int      @default(0)
-  utilities Int      @default(0)
-  other     Int      @default(0)
-
-  updatedAt DateTime @updatedAt
-}
-
-model Goal {
-  id           String     @id @default(cuid())
-  userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  targetAmount Int
-  startDate    DateTime   @default(now())
-  deadline     DateTime // enforced 1–4 calendar months out by the service layer
-  status       GoalStatus @default(active)
-
-  // Denormalised running total of SavingsEntry.amount, kept in sync by
-  // server/savings/addSavingsEntry.ts for fast dashboard reads.
-  savedAmount  Int        @default(0)
-
-  // Null until settlement. Interest paid only if savedAmount >= targetAmount
-  // at the deadline — no partial credit.
-  rewardRate   Float?
-  rewardAmount Int?
-  settledAt    DateTime?
-
-  entries      SavingsEntry[]
-
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-
-  // Supports "find active goals past deadline" in the settlement cron, and
-  // the per-user active-goal lookup.
-  @@index([userId, status])
-  @@index([status, deadline])
-}
-
-model SavingsEntry {
-  id        String   @id @default(cuid())
-  goalId    String
-  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
-
-  amount    Int
-  note      String?
-
-  createdAt DateTime @default(now())
-
-  @@index([goalId, createdAt])
-}
-
-model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @unique
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  stripeSubscriptionId String             @unique
-  status               SubscriptionStatus
-  currentPeriodEnd     DateTime
-
-  updatedAt            DateTime           @updatedAt
-}
-
-// ---------------------------------------------------------------------------
-// NextAuth (Prisma adapter) — Stream A consumes these
-// ---------------------------------------------------------------------------
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expires      DateTime
-
-  @@index([userId])
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
