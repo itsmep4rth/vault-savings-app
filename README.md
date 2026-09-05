@@ -118,7 +118,7 @@ Goal must be fully met to receive any reward.
 
 ## Team
 
-- Jemor Colin C. Ballentine — @github-username
+- Jemor Colin Ballentine — @github-username
 - Parth M. Chavan — @itsmep4rth
 - Sumit Dahiya — @github-username
 - Sanjar Yakshimuradov — @github-username
