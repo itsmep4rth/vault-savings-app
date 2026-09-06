@@ -51,20 +51,20 @@ are built together in Phase 0 so nobody is blocked.
 ## Stream B — Goals & Savings — Jemor Ballentine
 
 **Setup**
-- [ ] Finalize `Goal` + `SavingsEntry` models and migration
-- [ ] `server/goals/` and `server/savings/` module skeletons
+- [x] Finalize `Goal` + `SavingsEntry` models and migration
+- [x] `server/goals/` and `server/savings/` module skeletons
 
 **Build**
-- [ ] `server/goals/createGoal.ts` — validate deadline is 1–4 months out; reject if an active goal exists
-- [ ] `server/goals/getActiveGoal.ts`, `server/savings/getGoalProgress.ts`
-- [ ] `server/savings/addSavingsEntry.ts` — ownership check, insert entry, recompute `Goal.savedAmount`
-- [ ] `src/app/api/goals/route.ts`, `src/app/api/goals/[id]/route.ts` (get/update/cancel)
-- [ ] `src/app/api/savings/route.ts`
-- [ ] `src/app/onboarding/goal/page.tsx` + `components/goal/CreateGoalForm.tsx`
-- [ ] `src/app/dashboard/page.tsx` — active goal summary, progress bar, days left
-- [ ] `src/app/dashboard/log/page.tsx` + `components/savings/SavingsEntryForm.tsx`
-- [ ] `src/app/dashboard/history/page.tsx` + `components/savings/SavingsTimeline.tsx`
-- [ ] `components/goal/GoalProgressBar.tsx`, `GoalSummaryCard.tsx`
+- [x] `server/goals/createGoal.ts` — validate deadline is 1–4 months out; reject if an active goal exists
+- [x] `server/goals/getActiveGoal.ts`, `server/savings/getGoalProgress.ts`
+- [x] `server/savings/addSavingsEntry.ts` — ownership check, insert entry, recompute `Goal.savedAmount`
+- [x] `src/app/api/goals/route.ts`, `src/app/api/goals/[id]/route.ts` (get/update/cancel)
+- [x] `src/app/api/savings/route.ts`
+- [x] `src/app/onboarding/goal/page.tsx` + `components/goal/CreateGoalForm.tsx`
+- [x] `src/app/dashboard/page.tsx` — active goal summary, progress bar, days left
+- [x] `src/app/dashboard/log/page.tsx` + `components/savings/SavingsEntryForm.tsx`
+- [x] `src/app/dashboard/history/page.tsx` + `components/savings/SavingsTimeline.tsx`
+- [x] `components/goal/GoalProgressBar.tsx`, `GoalSummaryCard.tsx`
 
 **Test**
 - [ ] Unit: deadline range validation (1–4 months, boundaries)
