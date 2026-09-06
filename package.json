@@ -20,10 +20,13 @@
   "description": "Vault is a personal savings accountability web app that rewards users\r for actually meeting their savings goals. Set a target, save up, and\r earn interest when you follow through.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -35,7 +38,10 @@
   },
   "homepage": "https://github.com/itsmep4rth/vault-savings-app#readme",
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "26.4.1",
-    "typescript": "7.0.2"
+    "@vitest/coverage-v8": "^5.0.0",
+    "typescript": "7.0.2",
+    "vitest": "^5.0.0"
   }
 }
