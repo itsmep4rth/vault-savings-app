@@ -1,9 +1,56 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+export async function GET(
+  _request: Request,
+  context: RouteContext
+) {
+  try {
+    const session = await auth();
+    const { id } = await context.params;
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized." },
+        { status: 401 }
+      );
+    }
+
+    const goal = await prisma.goal.findFirst({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+      include: {
+        entries: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    if (!goal) {
+      return NextResponse.json(
+        { error: "Goal not found." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ goal });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch goal." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: Request,
   context: RouteContext
@@ -66,7 +113,6 @@ export async function PATCH(
       }
 
       const today = new Date();
-
       today.setHours(0, 0, 0, 0);
 
       const minDeadline = new Date(today);
@@ -103,15 +149,56 @@ export async function PATCH(
     });
 
     return NextResponse.json({ goal });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update goal.",
+      { error: "Failed to update goal." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  context: RouteContext
+) {
+  try {
+    const session = await auth();
+    const { id } = await context.params;
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized." },
+        { status: 401 }
+      );
+    }
+
+    const existingGoal = await prisma.goal.findFirst({
+      where: {
+        id,
+        userId: session.user.id,
       },
-      { status: 400 }
+    });
+
+    if (!existingGoal) {
+      return NextResponse.json(
+        { error: "Goal not found." },
+        { status: 404 }
+      );
+    }
+
+    await prisma.goal.delete({
+      where: {
+        id: existingGoal.id,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to delete goal." },
+      { status: 500 }
     );
   }
 }

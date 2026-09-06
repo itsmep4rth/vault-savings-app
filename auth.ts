@@ -5,5 +5,12 @@ import { prisma } from "@/lib/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
+
   providers: [Google],
+
+  session: {
+    strategy: "database",
+    maxAge: 15 * 60,
+    updateAge: 5 * 60,
+  },
 });

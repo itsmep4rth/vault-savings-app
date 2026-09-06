@@ -145,3 +145,7 @@ vite.config.ts.timestamp-*
 # Playwright authentication state
 playwright/.auth/
 tests/e2e/.auth/
+
+# Local/private Vault artifacts
+Security Question for Vault.txt
+test-results/
