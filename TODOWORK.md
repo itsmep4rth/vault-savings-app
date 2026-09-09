@@ -67,10 +67,10 @@ are built together in Phase 0 so nobody is blocked.
 - [x] `components/goal/GoalProgressBar.tsx`, `GoalSummaryCard.tsx`
 
 **Test**
-- [ ] Unit: deadline range validation (1–4 months, boundaries)
-- [ ] Unit: `savedAmount` recomputation after add/edit/delete entry
-- [ ] Unit: "only one active goal" rule
-- [ ] E2E: create goal → log savings → progress updates
+- [x] Unit: deadline range validation (1–4 months, boundaries)
+- [x] Unit: `savedAmount` recomputation after add/edit/delete entry
+- [x] Unit: "only one active goal" rule
+- [x] E2E: create goal → log savings → progress updates
 
 ---
 
