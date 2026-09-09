@@ -1,44 +1,81 @@
-import { test as setup, expect } from "@playwright/test";
+import { test as setup } from "@playwright/test";
+import "dotenv/config";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import crypto from "crypto";
 
-setup.setTimeout(180000);
+const databaseUrl = process.env.DATABASE_URL;
 
-setup("authenticate Playwright with Google", async ({ page, context }) => {
-  await page.goto("/");
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not configured.");
+}
 
-  const dashboardLink = page.getByRole("link", {
-    name: "Go to dashboard",
+const testDatabaseUrl = databaseUrl.replace(
+  /\/Vault(\?|$)/,
+  "/vault_test$1"
+);
+
+const adapter = new PrismaPg({
+  connectionString: testDatabaseUrl,
+});
+
+const prisma = new PrismaClient({ adapter });
+
+const TEST_EMAIL = "e2e-test@vault.local";
+
+setup.setTimeout(30_000);
+
+setup("authenticate E2E test user", async ({ context }) => {
+  let user = await prisma.user.findUnique({
+    where: {
+      email: TEST_EMAIL,
+    },
   });
 
-  if (await dashboardLink.isVisible().catch(() => false)) {
-    console.log("Already authenticated.");
-  } else {
-    console.log(
-      "Complete Google sign-in manually in the Playwright browser window."
-    );
-
-    await page.getByRole("button", {
-      name: /Continue with Google/i,
-    }).click();
-
-    await page.waitForURL(
-      /\/(onboarding\/goal|dashboard)/,
-      { timeout: 150000 }
-    );
-
-    await expect(
-      page.getByRole("link", {
-        name: /dashboard/i,
-      }).or(
-        page.getByRole("heading", {
-          name: /create.*goal|savings goal/i,
-        })
-      )
-    ).toBeVisible();
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: TEST_EMAIL,
+        name: "Vault E2E Test User",
+      },
+    });
   }
+
+  // Remove any previous sessions for the test user.
+  await prisma.session.deleteMany({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  // Create a fresh Auth.js database session.
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+
+  await prisma.session.create({
+    data: {
+      sessionToken,
+      userId: user.id,
+      expires: new Date(Date.now() + 15 * 60 * 1000),
+    },
+  });
+
+  await context.addCookies([
+    {
+      name: "authjs.session-token",
+      value: sessionToken,
+      domain: "localhost",
+      path: "/",
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+    },
+  ]);
 
   await context.storageState({
     path: "tests/e2e/.auth/user.json",
   });
 
-  console.log("Authentication state saved.");
+  await prisma.$disconnect();
+
+  console.log(`E2E authentication state created for ${TEST_EMAIL}.`);
 });
