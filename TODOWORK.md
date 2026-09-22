@@ -29,22 +29,22 @@ are built together in Phase 0 so nobody is blocked.
 ## Stream A — Auth & Onboarding — Parth Chavan
 
 **Setup**
-- [ ] Configure Google OAuth credentials (client id/secret, redirect URIs)
-- [ ] `lib/auth.ts` — NextAuth config, Google provider, Prisma adapter, JWT session with `userId` + `plan`
+- [ ] Configure Google OAuth credentials (client id/secret, redirect URIs) — needs a real Google Cloud Console project; add the values to `.env.local`
+- [x] `auth.ts` — NextAuth config, Google provider, Prisma adapter, session carries `userId` + `plan`
 
 **Build**
-- [ ] `src/app/api/auth/[...nextauth]/route.ts`
-- [ ] `src/app/(auth)/signin/page.tsx` — "Continue with Google"
-- [ ] `src/middleware.ts` — protect `/dashboard`, `/onboarding`, `/billing`, `/settings`; redirect new users to questionnaire
-- [ ] `src/app/onboarding/questionnaire/page.tsx` + `components/questionnaire/ExpenseForm.tsx`
-- [ ] `src/app/api/questionnaire/route.ts` + `server/questionnaire/saveExpenseProfile.ts`
-- [ ] `src/app/settings/page.tsx` — profile + editable expense profile + current plan (read-only from Stream C)
-- [ ] Root layout: session provider, nav, sign-out
+- [x] `app/api/auth/[...nextauth]/route.ts`
+- [x] `app/(auth)/signin/page.tsx` — "Continue with Google"
+- [x] `proxy.ts` — protect `/dashboard`, `/onboarding`, `/billing`, `/settings`; redirect new users to questionnaire
+- [x] `app/onboarding/questionnaire/page.tsx` + `components/questionnaire/ExpenseForm.tsx`
+- [x] `app/api/questionnaire/route.ts` + `server/questionnaire/saveExpenseProfile.ts`
+- [x] `app/settings/page.tsx` — profile + editable expense profile + current plan (read-only from Stream C)
+- [x] Root layout: session provider, nav, sign-out
 
 **Test**
-- [ ] Unit: expense-profile validation
-- [ ] E2E: new user → sign in → questionnaire → redirected to goal creation
-- [ ] Auth guard test: unauthenticated request to protected route redirects
+- [x] Unit: expense-profile validation
+- [x] E2E: new user → sign in → questionnaire → redirected to goal creation
+- [x] Auth guard test: unauthenticated request to protected route redirects
 
 ---
 

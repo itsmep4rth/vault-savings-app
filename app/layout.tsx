@@ -1,3 +1,12 @@
+import "./globals.css";
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
+import SiteNav from "@/components/layout/SiteNav";
+
+export const metadata = {
+  title: "Vault",
+  description: "Save with a goal.",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -5,7 +14,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SessionProviderWrapper>
+          <SiteNav />
+          {children}
+        </SessionProviderWrapper>
+      </body>
     </html>
   );
 }

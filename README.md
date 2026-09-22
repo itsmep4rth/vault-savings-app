@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Vault — Goal-Driven Savings App
 
 Vault is a personal savings accountability web app that rewards users
@@ -62,4 +61,3 @@ Goal must be fully met to receive any reward.
 ## Status
 
 🚧 In active development
-=======

@@ -41,6 +41,23 @@ setup("authenticate E2E test user", async ({ context }) => {
     });
   }
 
+  // Downstream specs (e.g. the goal/savings flow) exercise post-onboarding
+  // routes, which now redirect to the questionnaire until a profile exists.
+  // Treat this shared fixture user as already onboarded.
+  await prisma.expenseProfile.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: {
+      userId: user.id,
+      rent: 1200,
+      groceries: 300,
+      food: 150,
+      transport: 100,
+      utilities: 80,
+      other: 50,
+    },
+  });
+
   // Remove any previous sessions for the test user.
   await prisma.session.deleteMany({
     where: {
