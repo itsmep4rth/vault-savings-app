@@ -22,7 +22,7 @@
   "scripts": {
     "test": "vitest run",
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
