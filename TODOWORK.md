@@ -103,24 +103,24 @@ are built together in Phase 0 so nobody is blocked.
 ## Stream D — Reward Engine, Settlement Cron, Infra & Deploy — Sanjar Yakshimuradov
 
 **Setup**
-- [ ] `vercel.json` cron config (daily) → `/api/cron/settle-goals`
-- [ ] `CRON_SECRET` env var + header check helper
-- [ ] CI: GitHub Actions running lint + typecheck + tests on PRs
-- [ ] `prisma migrate deploy` wired into the Vercel build/release step
+- [x] `vercel.json` cron config (daily) → `/api/cron/settle-goals`
+- [x] `CRON_SECRET` env var + header check helper
+- [x] CI: GitHub Actions running lint + typecheck + tests on PRs
+- [x] `prisma migrate deploy` wired into the Vercel build/release step
 
 **Build**
-- [ ] `server/reward/calculateInterest.ts` — rate = premium ? 0.03 : 0.01; reward only if `savedAmount >= targetAmount`; no partial credit
-- [ ] `server/goals/settleGoal.ts` — mark `completed`/`failed`, set `rewardRate`, `rewardAmount`, `settledAt`
-- [ ] `src/app/api/cron/settle-goals/route.ts` — secret-protected; find `active` goals past deadline; settle each
-- [ ] Reward outcome display components used by Stream B history page (`RewardBadge`)
-- [ ] `prisma/seed.ts` — dev data: users on both plans, goals in various states
+- [x] `server/reward/calculateInterest.ts` — rate = premium ? 0.03 : 0.01; reward only if `savedAmount >= targetAmount`; no partial credit
+- [x] `server/goals/settleGoal.ts` — mark `completed`/`failed`, set `rewardRate`, `rewardAmount`, `settledAt`
+- [x] `src/app/api/cron/settle-goals/route.ts` — secret-protected; find `active` goals past deadline; settle each
+- [x] Reward outcome display components used by Stream B history page (`RewardBadge`)
+- [x] `prisma/seed.ts` — dev data: users on both plans, goals in various states
 - [ ] Staging/production env var setup in Vercel; `NEXTAUTH_URL` per environment
 - [ ] Error monitoring hookup (e.g. Sentry) + basic logging in cron and webhook
 
 **Test**
-- [ ] Unit: `calculateInterest` — met vs missed, free vs premium, rounding
-- [ ] Unit: `settleGoal` — status transitions, idempotency (re-running cron is safe)
-- [ ] Integration: cron endpoint rejects requests without `CRON_SECRET`
+- [x] Unit: `calculateInterest` — met vs missed, free vs premium, rounding
+- [x] Unit: `settleGoal` — status transitions, idempotency (re-running cron is safe)
+- [x] Integration: cron endpoint rejects requests without `CRON_SECRET`
 - [ ] Integration: seed goals at deadline → run cron → correct outcomes
 
 ---
