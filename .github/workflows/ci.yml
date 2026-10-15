@@ -27,12 +27,10 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/vault
 
       - name: TypeScript check
-        run: npx tsc --noEmit
-
-      - name: Run tests
-        run: npm test      - name: TypeScript check
         run: npx tsc --noEmit
 
       - name: Run tests
