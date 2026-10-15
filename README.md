@@ -56,7 +56,7 @@ Goal must be fully met to receive any reward.
 - Jemor Colin Ballentine — @cballent
 - Parth M. Chavan — @itsmep4rth
 - Sumit Dahiya — @github-username
-- Sanjar Yakshimuradov — @github-username
+- Sanjar Yakshimuradov — @sunjulyq
 
 ## Status
 
