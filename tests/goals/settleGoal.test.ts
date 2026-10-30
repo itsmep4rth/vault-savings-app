@@ -171,4 +171,97 @@ describe("settleGoal", () => {
       })
     );
   });
+
+  it("rounds the reward to the nearest dollar", async () => {
+    mockGoalFindUnique.mockResolvedValue({
+      id: "goal-4",
+      status: "active",
+      savedAmount: 150,
+      targetAmount: 100,
+      user: {
+        plan: "free",
+      },
+    });
+
+    mockGoalUpdate.mockResolvedValue({
+      id: "goal-4",
+      status: "completed",
+      rewardRate: 0.01,
+      rewardAmount: 2,
+      settledAt: new Date(),
+    });
+
+    await settleGoal("goal-4");
+
+    expect(mockGoalUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "completed",
+          rewardRate: 0.01,
+          rewardAmount: 2,
+        }),
+      })
+    );
+  });
+
+  it("gives no partial credit when the goal is one dollar short", async () => {
+    mockGoalFindUnique.mockResolvedValue({
+      id: "goal-5",
+      status: "active",
+      savedAmount: 999,
+      targetAmount: 1000,
+      user: {
+        plan: "premium",
+      },
+    });
+
+    mockGoalUpdate.mockResolvedValue({
+      id: "goal-5",
+      status: "failed",
+      rewardRate: 0.03,
+      rewardAmount: 0,
+      settledAt: new Date(),
+    });
+
+    await settleGoal("goal-5");
+
+    expect(mockGoalUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "failed",
+          rewardAmount: 0,
+        }),
+      })
+    );
+  });
+
+  it("records when the goal was settled", async () => {
+    mockGoalFindUnique.mockResolvedValue({
+      id: "goal-6",
+      status: "active",
+      savedAmount: 1000,
+      targetAmount: 1000,
+      user: {
+        plan: "free",
+      },
+    });
+
+    mockGoalUpdate.mockResolvedValue({
+      id: "goal-6",
+      status: "completed",
+      rewardRate: 0.01,
+      rewardAmount: 10,
+      settledAt: new Date(),
+    });
+
+    await settleGoal("goal-6");
+
+    expect(mockGoalUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          settledAt: expect.any(Date),
+        }),
+      })
+    );
+  });
 });

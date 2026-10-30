@@ -94,4 +94,72 @@ describe("GET /api/cron/settle-goals", () => {
     expect(mockSettleGoal).toHaveBeenCalledWith("goal-1");
     expect(mockSettleGoal).toHaveBeenCalledWith("goal-2");
   });
+
+  it("returns a 500 error when CRON_SECRET is not configured", async () => {
+    delete process.env.CRON_SECRET;
+
+    const request = new NextRequest(
+      "http://localhost/api/cron/settle-goals",
+      {
+        headers: {
+          authorization: "Bearer test-secret",
+        },
+      }
+    );
+
+    const response = await GET(request);
+
+    expect(response.status).toBe(500);
+    expect(mockGoalFindMany).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when no goals are past their deadline", async () => {
+    mockGoalFindMany.mockResolvedValue([]);
+
+    const request = new NextRequest(
+      "http://localhost/api/cron/settle-goals",
+      {
+        headers: {
+          authorization: "Bearer test-secret",
+        },
+      }
+    );
+
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.processed).toBe(0);
+    expect(mockSettleGoal).not.toHaveBeenCalled();
+  });
+
+  it("keeps settling the other goals when one goal fails", async () => {
+    mockGoalFindMany.mockResolvedValue([
+      { id: "goal-1" },
+      { id: "goal-2" },
+    ]);
+
+    mockSettleGoal
+      .mockRejectedValueOnce(new Error("database error"))
+      .mockResolvedValueOnce({ id: "goal-2", status: "completed" });
+
+    const request = new NextRequest(
+      "http://localhost/api/cron/settle-goals",
+      {
+        headers: {
+          authorization: "Bearer test-secret",
+        },
+      }
+    );
+
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.processed).toBe(2);
+    expect(body.results).toEqual([
+      { goalId: "goal-1", status: "error" },
+      { goalId: "goal-2", status: "completed" },
+    ]);
+  });
 });
