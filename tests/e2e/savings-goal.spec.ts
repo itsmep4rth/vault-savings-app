@@ -3,16 +3,34 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const databaseUrl = process.env.DATABASE_URL;
+// IMPORTANT:
+// The application test server and auth.setup.ts must also
+// use this same test database.
+const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not configured.");
+if (!testDatabaseUrl) {
+  throw new Error(
+    "TEST_DATABASE_URL is required for database E2E tests."
+  );
 }
 
-const testDatabaseUrl = databaseUrl.replace(
-  /\/Vault(\?|$)/,
-  "/vault_test$1"
-);
+const parsedDatabaseUrl = new URL(testDatabaseUrl);
+
+if (
+  !["postgres:", "postgresql:"].includes(
+    parsedDatabaseUrl.protocol
+  )
+) {
+  throw new Error(
+    "TEST_DATABASE_URL must be a PostgreSQL connection URL."
+  );
+}
+
+if (parsedDatabaseUrl.pathname !== "/vault_test") {
+  throw new Error(
+    "Refusing to run: TEST_DATABASE_URL must point to vault_test."
+  );
+}
 
 const adapter = new PrismaPg({
   connectionString: testDatabaseUrl,
@@ -27,7 +45,6 @@ test.afterAll(async () => {
 });
 
 test("create goal and log savings", async ({ page }) => {
-  // Find the exact user used by auth.setup.ts.
   const user = await prisma.user.findUnique({
     where: {
       email: TEST_EMAIL,
@@ -36,37 +53,38 @@ test("create goal and log savings", async ({ page }) => {
 
   if (!user) {
     throw new Error(
-      `E2E test user ${TEST_EMAIL} was not found.`
+      `E2E user ${TEST_EMAIL} was not found in vault_test. ` +
+        "Check auth.setup.ts and the test database configuration."
     );
   }
 
-  // Start with a completely clean goal/savings state
-  // for this dedicated E2E user.
-  await prisma.savingsEntry.deleteMany({
-    where: {
-      goal: {
+  // Delete only this dedicated user's test data.
+  // A transaction keeps these cleanup operations together.
+  await prisma.$transaction(async (tx) => {
+    await tx.savingsEntry.deleteMany({
+      where: {
+        goal: {
+          userId: user.id,
+        },
+      },
+    });
+
+    await tx.goal.deleteMany({
+      where: {
         userId: user.id,
       },
-    },
+    });
   });
 
-  await prisma.goal.deleteMany({
-    where: {
-      userId: user.id,
-    },
-  });
+  expect(
+    await prisma.goal.count({
+      where: {
+        userId: user.id,
+      },
+    })
+  ).toBe(0);
 
-  const remainingGoals = await prisma.goal.count({
-    where: {
-      userId: user.id,
-    },
-  });
-
-  expect(remainingGoals).toBe(0);
-
-  // --------------------------------------------------
   // CREATE GOAL
-  // --------------------------------------------------
 
   await page.goto("/onboarding/goal");
 
@@ -84,9 +102,8 @@ test("create goal and log savings", async ({ page }) => {
 
   await amountInput.fill("1000");
 
-  // Use a stable two-month deadline.
-  // Setting the date to the first of the month first
-  // avoids month-end rollover problems.
+  // The first day of the month two months ahead is within
+  // the 1–4 month range and avoids month-end rollover.
   const deadline = new Date();
 
   deadline.setHours(12, 0, 0, 0);
@@ -101,90 +118,123 @@ test("create goal and log savings", async ({ page }) => {
 
   await deadlineInput.fill(deadlineValue);
 
-  await page.getByRole("button", {
-    name: "Create savings goal",
-  }).click();
+  await page
+    .getByRole("button", {
+      name: "Create savings goal",
+      exact: true,
+    })
+    .click();
 
-  // The form should redirect after a successful POST.
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/dashboard\/?$/);
 
-  // --------------------------------------------------
-  // VERIFY INITIAL GOAL
-  // --------------------------------------------------
+  // VERIFY INITIAL DASHBOARD
 
   await expect(
-    page.getByText("$1,000", { exact: true })
+    page.getByText("of $1,000", { exact: true })
   ).toBeVisible();
 
   await expect(
-    page.getByText("$0", { exact: true })
+    page.getByRole("heading", {
+      name: "$0",
+      exact: true,
+    })
   ).toBeVisible();
 
-  // --------------------------------------------------
   // LOG SAVINGS
-  // --------------------------------------------------
 
-  await page.getByRole("link", {
-    name: "Log savings",
-  }).click();
+  await page
+    .getByRole("link", {
+      name: "Log savings",
+      exact: true,
+    })
+    .click();
 
-  await expect(page).toHaveURL(/\/dashboard\/log$/);
+  await expect(page).toHaveURL(/\/dashboard\/log\/?$/);
 
   const savingsAmountInput = page.locator(
     'input[type="number"]'
   );
 
   await expect(savingsAmountInput).toBeVisible();
-
   await savingsAmountInput.fill("250");
 
   const noteInput = page.locator(
     'input[name="note"], textarea[name="note"]'
   );
 
-  if (await noteInput.count()) {
+  const hasNoteInput = (await noteInput.count()) > 0;
+
+  if (hasNoteInput) {
+    await expect(noteInput).toBeVisible();
     await noteInput.fill("E2E test savings");
   }
 
-  await page.getByRole("button", {
-    name: "Add savings",
-  }).click();
+  await page
+    .getByRole("button", {
+      name: "Add savings",
+      exact: true,
+    })
+    .click();
 
-  // --------------------------------------------------
   // VERIFY UPDATED DASHBOARD
-  // --------------------------------------------------
 
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/dashboard\/?$/);
 
   await expect(
-    page.getByText("$250", { exact: true })
+    page.getByRole("heading", {
+      name: "$250",
+      exact: true,
+    })
   ).toBeVisible();
 
   await expect(
     page.getByText("25%", { exact: true })
   ).toBeVisible();
 
-  // --------------------------------------------------
   // VERIFY DATABASE STATE
-  // --------------------------------------------------
+  //
+  // These expectations preserve the monetary-unit contract
+  // in your original test: input 1000 -> stored 1000.
+  // Confirm this matches the application's intended units.
 
-  const goal = await prisma.goal.findFirst({
+  const goals = await prisma.goal.findMany({
     where: {
       userId: user.id,
-      status: "active",
+    },
+    include: {
+      entries: true,
     },
   });
 
-  expect(goal).not.toBeNull();
-  expect(goal?.targetAmount).toBe(1000);
-  expect(goal?.savedAmount).toBe(250);
+  expect(goals).toHaveLength(1);
 
-  const savingsEntry = await prisma.savingsEntry.findFirst({
-    where: {
-      goalId: goal!.id,
-    },
-  });
+  const goal = goals[0];
 
-  expect(savingsEntry).not.toBeNull();
-  expect(savingsEntry?.amount).toBe(250);
+  if (!goal) {
+    throw new Error("Expected the created goal to exist.");
+  }
+
+  expect(goal.status).toBe("active");
+  expect(goal.targetAmount).toBe(1000);
+  expect(goal.savedAmount).toBe(250);
+  expect(goal.entries).toHaveLength(1);
+
+  const savingsEntry = goal.entries[0];
+
+  if (!savingsEntry) {
+    throw new Error("Expected the savings entry to exist.");
+  }
+
+  expect(savingsEntry.amount).toBe(250);
+
+  if (hasNoteInput) {
+    expect(savingsEntry.note).toBe("E2E test savings");
+  }
+
+  const entryTotal = goal.entries.reduce(
+    (sum, entry) => sum + entry.amount,
+    0
+  );
+
+  expect(goal.savedAmount).toBe(entryTotal);
 });
