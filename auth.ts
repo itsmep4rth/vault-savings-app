@@ -25,4 +25,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
+
+  logger: {
+    error(error) {
+      console.error("[Vault Auth Error]", {
+        name: error.name,
+        type: error.type,
+        message: error.message,
+      });
+
+      const underlyingError = error.cause?.err;
+
+      if (underlyingError instanceof Error) {
+        console.error("[Vault Auth Cause]", {
+          name: underlyingError.name,
+          message: underlyingError.message,
+        });
+      }
+    },
+  },
 });
