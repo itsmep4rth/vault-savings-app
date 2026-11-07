@@ -17,12 +17,12 @@
   },
   "name": "vault-savings-app",
   "version": "1.0.0",
-  "description": "Vault is a personal savings accountability web app that rewards users\r for actually meeting their savings goals. Set a target, save up, and\r earn interest when you follow through.",
+  "description": "Vault is a personal savings accountability web app that rewards users for actually meeting their savings goals. Set a target, save up, and earn interest when you follow through.",
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -41,9 +41,9 @@
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "26.4.1",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/coverage-v8": "5.0.3",
     "tailwindcss": "^4.1.0",
     "typescript": "7.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "5.0.3"
   }
 }

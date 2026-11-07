@@ -1,7 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useId, useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./ExpenseForm.module.css";
 
 type ExpenseFields = {
   rent: number;
@@ -12,7 +14,10 @@ type ExpenseFields = {
   other: number;
 };
 
-const FIELD_LABELS: { key: keyof ExpenseFields; label: string }[] = [
+const FIELD_LABELS: {
+  key: keyof ExpenseFields;
+  label: string;
+}[] = [
   { key: "rent", label: "Rent / mortgage" },
   { key: "groceries", label: "Groceries" },
   { key: "food", label: "Dining out" },
@@ -33,8 +38,11 @@ export default function ExpenseForm({
   submitLabel = "Continue",
 }: ExpenseFormProps) {
   const router = useRouter();
+  const formId = useId();
 
-  const [values, setValues] = useState<Record<keyof ExpenseFields, string>>({
+  const [values, setValues] = useState<
+    Record<keyof ExpenseFields, string>
+  >({
     rent: String(initialValues?.rent ?? ""),
     groceries: String(initialValues?.groceries ?? ""),
     food: String(initialValues?.food ?? ""),
@@ -46,11 +54,16 @@ export default function ExpenseForm({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function updateField(key: keyof ExpenseFields, value: string) {
+  function updateField(
+    key: keyof ExpenseFields,
+    value: string,
+  ) {
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
     setError("");
     setLoading(true);
@@ -74,42 +87,77 @@ export default function ExpenseForm({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save expense profile.");
+        throw new Error(
+          data.error || "Failed to save expense profile.",
+        );
       }
 
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {FIELD_LABELS.map(({ key, label }) => (
-        <div key={key}>
-          <label className="mb-2 block text-sm font-medium">{label}</label>
+    <form
+      onSubmit={handleSubmit}
+      className={styles.form}
+      aria-busy={loading}
+    >
+      <p id={`${formId}-help`} className={styles.help}>
+        Enter your typical monthly amount for each category.
+        Enter 0 if a category does not apply.
+      </p>
 
-          <div className="flex items-center rounded-lg border px-3">
-            <span className="text-gray-500">$</span>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={values[key]}
-              onChange={(e) => updateField(key, e.target.value)}
-              placeholder="0"
-              required
-              className="w-full bg-transparent px-2 py-3 outline-none"
-            />
+      {FIELD_LABELS.map(({ key, label }) => {
+        const inputId = `${formId}-${key}`;
+
+        return (
+          <div key={key} className={styles.field}>
+            <label
+              htmlFor={inputId}
+              className={styles.label}
+            >
+              {label}
+            </label>
+
+            <div className={styles.inputWrapper}>
+              <span
+                className={styles.currency}
+                aria-hidden="true"
+              >
+                $
+              </span>
+
+              <input
+                id={inputId}
+                name={key}
+                type="number"
+                min="0"
+                step="1"
+                value={values[key]}
+                onChange={(event) =>
+                  updateField(key, event.target.value)
+                }
+                placeholder="0"
+                required
+                aria-describedby={`${formId}-help`}
+                className={styles.input}
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className={styles.error}>
           {error}
         </div>
       )}
@@ -117,9 +165,13 @@ export default function ExpenseForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-black px-4 py-3 font-medium text-white disabled:opacity-50"
+        className={styles.submitButton}
       >
         {loading ? "Saving..." : submitLabel}
+
+        {!loading && (
+          <span aria-hidden="true">→</span>
+        )}
       </button>
     </form>
   );
