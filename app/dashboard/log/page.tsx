@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getActiveGoal } from "@/server/goals/getActiveGoal";
 import SavingsEntryForm from "@/components/savings/SavingsEntryForm";
+import styles from "../../vault-pages.module.css";
 
 export default async function LogSavingsPage() {
   const session = await auth();
@@ -18,29 +19,37 @@ export default async function LogSavingsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-12">
-      <Link
-        href="/dashboard"
-        className="text-sm text-gray-500 hover:text-black"
-      >
-        ← Back to dashboard
-      </Link>
+    <main className={styles.page}>
+      <div className={styles.narrowContainer}>
+        <section className={styles.panel}>
+          <Link
+            href="/dashboard"
+            className={styles.backLink}
+          >
+            ← Back to dashboard
+          </Link>
 
-      <div className="mt-6 rounded-2xl border bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold">Log savings</h1>
+          <h1 className={styles.heading}>
+            Log savings
+          </h1>
 
-        <p className="mt-2 text-gray-600">
-          Record money you've saved toward your current Vault goal.
-        </p>
-
-        <div className="my-6 rounded-lg bg-gray-50 p-4">
-          <p className="text-sm text-gray-500">Current goal</p>
-          <p className="mt-1 font-semibold">
-            ${goal.targetAmount.toLocaleString()}
+          <p className={styles.description}>
+            Record money you&apos;ve saved toward your
+            current Vault goal.
           </p>
-        </div>
 
-        <SavingsEntryForm goalId={goal.id} />
+          <div className={styles.goalBox}>
+            <p className={styles.goalLabel}>
+              Current goal
+            </p>
+
+            <p className={styles.goalAmount}>
+              ${goal.targetAmount.toLocaleString()}
+            </p>
+          </div>
+
+          <SavingsEntryForm goalId={goal.id} />
+        </section>
       </div>
     </main>
   );

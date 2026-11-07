@@ -1,0 +1,132 @@
+.form,
+.form * {
+  box-sizing: border-box;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.help {
+  margin: 0;
+  color: #a9c1b4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.field {
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  color: #e2eee7;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.inputWrapper {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid rgba(196, 213, 204, 0.3);
+  border-radius: 10px;
+  background: #0b2b1f;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.inputWrapper:hover {
+  border-color: rgba(196, 213, 204, 0.55);
+}
+
+.inputWrapper:focus-within {
+  border-color: #29ca85;
+  outline: 2px solid #8ff2bc;
+  outline-offset: 2px;
+  background: #103626;
+}
+
+.currency {
+  flex-shrink: 0;
+  color: #8ff2bc;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 12px 0 12px 10px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  color-scheme: dark;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.input::placeholder {
+  color: #91aa9d;
+  opacity: 1;
+}
+
+.submitButton {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #29ca85;
+  color: #062216;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #46dc9b;
+  transform: translateY(-1px);
+}
+
+.submitButton:focus-visible {
+  outline: 3px solid #8ff2bc;
+  outline-offset: 4px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  padding: 12px 14px;
+  border: 1px solid #c97c7c;
+  border-radius: 10px;
+  background: #412020;
+  color: #ffe2e2;
+  font-size: 13px;
+  line-height: 1.6;
+}

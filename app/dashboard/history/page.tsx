@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getActiveGoal } from "@/server/goals/getActiveGoal";
 import { getGoalProgress } from "@/server/savings/getGoalProgress";
 import SavingsTimeline from "@/components/savings/SavingsTimeline";
+import styles from "../../vault-pages.module.css";
 
 export default async function SavingsHistoryPage() {
   const session = await auth();
@@ -20,7 +21,7 @@ export default async function SavingsHistoryPage() {
 
   const progress = await getGoalProgress(
     session.user.id,
-    goal.id
+    goal.id,
   );
 
   const entries = progress.goal.entries.map((entry) => ({
@@ -31,24 +32,35 @@ export default async function SavingsHistoryPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link
-        href="/dashboard"
-        className="text-sm text-gray-500 hover:text-black"
-      >
-        ← Back to dashboard
-      </Link>
+    <main className={styles.page}>
+      <div className={styles.mediumContainer}>
+        <section className={styles.panel}>
+          <Link
+            href="/dashboard"
+            className={styles.backLink}
+          >
+            ← Back to dashboard
+          </Link>
 
-      <div className="mb-8 mt-6">
-        <h1 className="text-3xl font-bold">Savings history</h1>
+          <header className={styles.header}>
+            <div>
+              <h1 className={styles.heading}>
+                Savings history
+              </h1>
 
-        <p className="mt-2 text-gray-600">
-          You've saved ${progress.savedAmount.toLocaleString()} toward your
-          ${progress.targetAmount.toLocaleString()} goal.
-        </p>
+              <p className={styles.description}>
+                You&apos;ve saved $
+                {progress.savedAmount.toLocaleString()}
+                {" toward your $"}
+                {progress.targetAmount.toLocaleString()}
+                {" goal."}
+              </p>
+            </div>
+          </header>
+
+          <SavingsTimeline entries={entries} />
+        </section>
       </div>
-
-      <SavingsTimeline entries={entries} />
     </main>
   );
 }

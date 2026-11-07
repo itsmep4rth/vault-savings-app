@@ -2,21 +2,16 @@ export type Env = {
   DATABASE_URL: string;
   NEXTAUTH_SECRET: string;
   NEXTAUTH_URL: string;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   STRIPE_PRICE_PREMIUM: string;
   CRON_SECRET: string;
 };
 
-// Every key in .env.example. Keep the two in sync.
 const REQUIRED_KEYS: (keyof Env)[] = [
   "DATABASE_URL",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
-  "GOOGLE_CLIENT_ID",
-  "GOOGLE_CLIENT_SECRET",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "STRIPE_PRICE_PREMIUM",
@@ -53,14 +48,18 @@ export function parseEnv(
   }
 
   const databaseUrl = values.DATABASE_URL;
+
   if (
     databaseUrl !== undefined &&
     !/^postgres(ql)?:\/\//.test(databaseUrl)
   ) {
-    problems.push("DATABASE_URL must start with postgres:// or postgresql://");
+    problems.push(
+      "DATABASE_URL must start with postgres:// or postgresql://"
+    );
   }
 
   const nextAuthUrl = values.NEXTAUTH_URL;
+
   if (nextAuthUrl !== undefined && !isHttpUrl(nextAuthUrl)) {
     problems.push("NEXTAUTH_URL must be a valid http(s) URL");
   }
