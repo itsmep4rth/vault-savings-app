@@ -28,52 +28,70 @@ export default function GoalSummaryCard({
     : progress.toFixed(1);
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500">Active savings goal</p>
-
-          <h2 className="mt-1 text-3xl font-bold">
-            ${savedAmount.toLocaleString()}
+    <section
+      aria-labelledby="active-goal-heading"
+      className="min-w-0 rounded-2xl border border-white/15 bg-[#0b2b1f] p-5 text-white shadow-sm sm:p-6"
+    >
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2
+            id="active-goal-heading"
+            className="text-sm font-medium text-[#c4d5cc]"
+          >
+            Active savings goal
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 break-words text-3xl font-bold text-[#8ff2bc]">
+            ${savedAmount.toLocaleString()}
+          </p>
+
+          <p className="mt-1 text-sm text-[#c4d5cc]">
             of ${targetAmount.toLocaleString()}
           </p>
         </div>
 
-        <div className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium">
-          {daysLeft} days left
+        <div className="shrink-0 rounded-xl border border-[#8ff2bc]/30 bg-[#163d2c] px-4 py-3 text-center">
+          <p className="text-2xl font-bold leading-tight text-[#8ff2bc]">
+            {daysLeft}
+          </p>
+
+          <p className="mt-1 text-sm font-medium text-white">
+            {daysLeft === 1 ? "day left" : "days left"}
+          </p>
         </div>
       </div>
 
       <GoalProgressBar progress={progress} />
 
-      <div className="mt-5 grid grid-cols-2 gap-4">
-        <div className="rounded-xl bg-gray-50 p-4">
-          <p className="text-sm text-gray-500">Progress</p>
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="min-w-0 rounded-xl border border-white/10 bg-[#061d15] p-4">
+          <p className="text-sm text-[#c4d5cc]">
+            Progress
+          </p>
 
-          <p className="mt-1 text-lg font-semibold text-gray-900">
+          <p className="mt-1 break-words text-lg font-semibold text-white">
             {formattedProgress}%
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#a9c1b4]">
             Complete
           </p>
         </div>
 
-        <div className="rounded-xl bg-gray-50 p-4">
-          <p className="text-sm text-gray-500">Remaining</p>
+        <div className="min-w-0 rounded-xl border border-white/10 bg-[#061d15] p-4">
+          <p className="text-sm text-[#c4d5cc]">
+            Remaining
+          </p>
 
-          <p className="mt-1 text-lg font-semibold text-gray-900">
+          <p className="mt-1 break-words text-lg font-semibold text-white">
             ${remaining.toLocaleString()}
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-[#a9c1b4]">
             To reach your goal
           </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
