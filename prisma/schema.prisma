@@ -10,6 +10,7 @@ model User {
   id               String          @id @default(cuid())
   name             String?
   email            String          @unique
+  passwordHash     String?
   emailVerified    DateTime?
   image            String?
   plan             Plan            @default(free)
@@ -24,16 +25,17 @@ model User {
 }
 
 model ExpenseProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  rent      Int      @default(0)
-  groceries Int      @default(0)
-  food      Int      @default(0)
-  transport Int      @default(0)
-  utilities Int      @default(0)
-  other     Int      @default(0)
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  monthlySalary Decimal? @db.Decimal(12, 2)
+  rent          Int      @default(0)
+  groceries     Int      @default(0)
+  food          Int      @default(0)
+  transport     Int      @default(0)
+  utilities     Int      @default(0)
+  other         Int      @default(0)
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Goal {
