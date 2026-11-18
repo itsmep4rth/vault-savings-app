@@ -6,7 +6,13 @@ import { prisma } from "@/lib/prisma";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
 
-  providers: [Google],
+  // Auth.js v5 would otherwise look for AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET.
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+  ],
 
   session: {
     strategy: "database",
