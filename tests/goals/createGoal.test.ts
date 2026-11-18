@@ -1,4 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 const mocks = vi.hoisted(() => ({
   prisma: {
@@ -17,7 +24,16 @@ import { createGoal } from "@/server/goals/createGoal";
 
 describe("createGoal", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.useFakeTimers();
+
+    vi.setSystemTime(
+      new Date("2026-10-01T12:00:00")
+    );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("rejects creating a goal when the user already has an active goal", async () => {
@@ -33,9 +49,13 @@ describe("createGoal", () => {
         targetAmount: 1000,
         deadline: new Date("2026-12-01T12:00:00"),
       })
-    ).rejects.toThrow("User already has an active goal.");
+    ).rejects.toThrow(
+      "User already has an active goal."
+    );
 
-    expect(mocks.prisma.goal.create).not.toHaveBeenCalled();
+    expect(
+      mocks.prisma.goal.create
+    ).not.toHaveBeenCalled();
   });
 
   it("allows creating a goal when the user has no active goal", async () => {
@@ -58,7 +78,9 @@ describe("createGoal", () => {
 
     expect(result.id).toBe("new-goal");
 
-    expect(mocks.prisma.goal.create).toHaveBeenCalledWith({
+    expect(
+      mocks.prisma.goal.create
+    ).toHaveBeenCalledWith({
       data: {
         userId: "user-1",
         targetAmount: 1000,
