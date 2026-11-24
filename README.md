@@ -27,7 +27,7 @@ Goal must be fully met to receive any reward.
 
 - **Frontend:** Next.js (React)
 - **Auth:** NextAuth.js with Google OAuth
-- **Database:** PostgreSQL (Supabase / Neon)
+- **Database:** PostgreSQL (Prisma)
 - **Payments:** Stripe (subscription billing)
 - **Hosting:** Vercel
 
